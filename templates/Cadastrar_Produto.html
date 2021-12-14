@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h3>
+        Novo produto
+    </h3>
+    <!-- Content here -->
+    <form class="row g-3" method="post" action="/produtos/add/">
+        <div class="col-12">
+            <label for="descricao" class="form-label">Descrição</label>
+            <input type="text" class="form-control" id="descricao" placeholder="Descreva seu produto">
+        </div>
+        <div class="col-12">
+            <label for="codigo_barras" class="form-label">Código de barras</label>
+            <input type="text" class="form-control" id="codigo_barras" placeholder="Insira aqui seu código de barras">
+        </div>
+        <div class="col-md-6">
+            <label for="unidade_medida" class="form-label" >Unidade de medida</label>
+            <input type="text" class="form-control" id="unidade_medida" placeholder="Qual unidade  de medida  do seu produto">
+        </div>
+        <div class="col-md-6">
+            <label for="preco" class="form-label" ">Preço</label>
+            <input type="number" min="0.00" max="10000.00" step="0.01" class="form-control" id="preco" placeholder="Valor do produto">
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Cadastrar</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

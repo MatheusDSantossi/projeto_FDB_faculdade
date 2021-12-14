@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h3>
+        Editar fornecedor
+    </h3>
+    <!-- Content here -->
+    <form class="row g-3">
+        <div class="col-12">
+            <label for="razao_social" class="form-label">Razao social</label>
+            <input type="text" class="form-control" id="razao_social" value="{{ razao_social }}">
+        </div>
+        <div class="col-12">
+            <label for="nome_fantasia" class="form-label">Nome fantasia</label>
+            <input type="text" class="form-control" id="nome_fantasia" value="{{ nome_fantasia }}">
+        </div>
+        <div class="col-md-6">
+            <label for="cnpj" class="form-label" >CNPJ</label>
+            <input type="number" class="form-control" id="cnpj" value="{{ cnpj }}">
+        </div>
+        <div class="col-md-6">
+            <label for="inscricao_estadual" class="form-label">Inscrição estadual</label>
+            <input type="text" class="form-control" id="inscricao_estadual" value="{{ inscricao_estadual }}">
+        </div>
+
+          <div class="col-12">
+            <label for="logradouro" class="form-label">Logradouro</label>
+            <input type="text" class="form-control" id="logradouro" value="{{ logradouro }}">
+        </div>
+        <div class="col-12">
+            <label for="bairro" class="form-label">Bairro</label>
+            <input type="text" class="form-control" id="bairro" value="{{ bairro }}">
+        </div>
+        <div class="col-md-6">
+            <label for="municipio" class="form-label" >Munícipio</label>
+            <input type="number" class="form-control" id="municipio" value="{{ municipio }}">
+        </div>
+        <div class="col-md-6">
+            <label for="estado" class="form-label">Estado</label>
+            <input type="text" class="form-control" id="estado" value="{{ estado }}">
+        </div>
+
+          <div class="col-12">
+            <label for="cep" class="form-label">CEP</label>
+            <input type="text" class="form-control" id="cep" value="{{ cep }}">
+        </div>
+        <div class="col-md-6">
+            <label for="telefone" class="form-label" >Telefone</label>
+            <input type="number" class="form-control" id="telefone" value="{{ telefone }}">
+        </div>
+        <div class="col-md-6">
+            <label for="email" class="form-label">E-mail</label>
+            <input type="text" class="form-control" id="email" value="{{ email }}">
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h3>
+        Editar produto
+    </h3>
+    <!-- Content here -->
+    <form class="row g-3">
+        <div class="col-12">
+            <label for="descricao" class="form-label">Descrição</label>
+            <input type="text" class="form-control" id="descricao" value="{{ descricao }}">
+        </div>
+        <div class="col-12">
+            <label for="codigo_barras" class="form-label">Código de barras</label>
+            <input type="text" class="form-control" id="codigo_barras" value="{{ codigo_barras }}">
+        </div>
+        <div class="col-md-6">
+            <label for="unidade_medida" class="form-label" >Unidade de medida</label>
+            <input type="text" class="form-control" id="unidade_medida" value="{{ unidade_medida }}">
+        </div>
+        <div class="col-md-6">
+            <label for="preco" class="form-label" ">Preço</label>
+            <input type="number" min="0.00" max="10000.00" step="0.01" class="form-control" id="preco" value="{{ preco }}">
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
