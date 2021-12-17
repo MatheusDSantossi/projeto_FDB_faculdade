@@ -70,7 +70,7 @@ def getFornecedorJson():
     'Email' : 'XXX@gmail.com'
     }
 
-@app.route('/fornecedores/add/', methods=['GET','POST'])
+@app.route('/fornecedores/add/', methods=['POST'])
 def new_fornecedor():
 
     if request.method == 'POST':
@@ -87,7 +87,6 @@ def new_fornecedor():
         email = request.form.get('email')
 
         conexao_db.novo_Fornecedor(razao_social, nome_fantasia, cnpj, inscricao_estadual, logradouro, bairro, municipio, estado, cep, telefone, email)
-        #tirei o saldo daqui porque tave sem em algum lugar
 
         return "post"
 

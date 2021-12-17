@@ -165,7 +165,7 @@ def novo_Banco(codigobancario,  nomebanco, agencia,  conta,  endereco, bairro, m
     concect.commit()
     cursor.close()
 
-def novo_Cliente(nome,  cpf, logradouro, bairro, municipio, estado, cep, telefone,  email,  saldo):
+def novo_Cliente(nome,  cpf, logradouro, bairro, municipio, estado, cep, telefone,  email,  saldo=" "):
     cursor = concect.cursor()
     novoRegistro = "insert into Cliente(nome, cpf,  logradouro, bairro, municipio, estado, cep, telefone, email, saldo) values ('"+nome+"', "+cpf+", '"+logradouro+", '"+bairro+", '"+municipio+", '"+estado+", '"+cep+", '"+telefone+", '"+email+", '"+str(saldo)+"') "
     cursor.execute(novoRegistro)
@@ -313,7 +313,8 @@ def get_estoque_by_id(id):
 
     return None
 
-def get_saldo_estoque_by_estoque_e_produto(produto, estoque):
+# PORQUE NÃO PDOE FAZER ISSO
+def get_saldo_estoque_by_estoque_e_produto(produto, estoque, user="", user2):
     cursor = concect.cursor()
     novoSaldo = "SELECT * from Saldo_Estoque where produto=" + str(produto) + " and estoque="+ str(estoque)
     cursor.execute(novoSaldo)
