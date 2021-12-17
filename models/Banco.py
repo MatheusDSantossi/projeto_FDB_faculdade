@@ -1,6 +1,6 @@
 class Banco():
 
-    def __init__(self, id, codigo_bancario, nome, agencia, conta, logradouro, bairro, municipio, estado, cep,  telefone,  email):
+    def __init__(self, id, codigo_bancario, nome, agencia, conta, logradouro, bairro, municipio, estado, cep,  telefone,  email, saldo):
         self.id = id
         self.codigo_bancario = codigo_bancario
         self.nome = nome
@@ -13,6 +13,7 @@ class Banco():
         self.cep = cep
         self.telefone = telefone
         self.email = email
+        self.saldo = saldo
 
     def toJson(self):
         return dict(
@@ -27,5 +28,6 @@ class Banco():
             estado = self.estado,
             cep = self.cep,
             telefone = self.telefone,
-            email = self.email
+            email = self.email,
+            saldo = self.saldo
         )

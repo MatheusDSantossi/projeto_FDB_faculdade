@@ -6,7 +6,7 @@ class Nota_Fiscal():
         self.tipo = tipo
         self.valor = valor
         self.dataEntrada = dataEntrada
-        self.tituloBancario = tituloBancario
+        #self.tituloBancario = tituloBancario
 
     def toJson(self):
         return dict(
@@ -16,6 +16,6 @@ class Nota_Fiscal():
             tipo = self.tipo,
             valor = self.valor,
             data_entrada=self.dataEntrada,
-            titulo_bancario=self.tituloBancario
+            #titulo_bancario=self.tituloBancario
 
         )
