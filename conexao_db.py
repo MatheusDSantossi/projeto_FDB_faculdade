@@ -7,7 +7,6 @@ from models.Estoque import Estoque
 from models.Saldo_Estoque import Saldo_Estoque
 from models.Banco import Banco
 from models.Movimento_Bancario import Movimento_Bancario
-from models.Titulo_Bancario import Titulo_Bancario
 from models.Nota_Fiscal import Nota_Fiscal
 from models.Item_NF import Item_NF
 from models.item_venda import Item_Venda
@@ -18,12 +17,10 @@ import psycopg2
 #Dados da conecção
 concect = psycopg2.connect(
     host = 'localhost',
-    database = 'hermes',
+    database = 'Hermes',
     user = 'postgres',
-    password = 'matheus19dev',
-
+    password = '157359',
 )
-
 
 #Criando banco de dados
 def create_table_Users():
@@ -89,23 +86,16 @@ def create_table_Movimento_Bancario():
     concect.commit()
     cursor.close()
 
-def create_table_Titulo_Bancario():
-    cursor = concect.cursor()
-    table = 'create table if not exists Titulo_Bancario(id serial primary key, banco INTEGER references Banco(id), tipo varchar(7), origem varchar(15), valor REAL, vencimento Date, status varchar(8),	movimento INTEGER references Movimento_Bancario(id))'
-    cursor.execute(table)
-    concect.commit()
-    cursor.close()
-
 def create_table_Nota_Fiscal():
     cursor = concect.cursor()
-    table = 'create table if not exists Nota_Fiscal(id serial primary key, numero varchar(9), fornecedor INTEGER references Fornecedor(id), tipo varchar(7), valor REAL, dataEntrada Date, tituloBancario INTEGER references Titulo_Bancario(id))'
+    table = 'create table if not exists Nota_Fiscal(id serial primary key, numero varchar(9), fornecedor INTEGER references Fornecedor(id), valor REAL, dataEntrada Date)'
     cursor.execute(table)
     concect.commit()
     cursor.close()
 
 def create_table_Item_NF():
     cursor = concect.cursor()
-    table = 'create table if not exists Item_NF(id serial primary key, origem INTEGER references Nota_Fiscal(id), fornecedor INTEGER references Fornecedor(id), tipo varchar(7), produto INTEGER references Produto(id), quantidade REAL, valor REAL, dataEntrada Date)'
+    table = 'create table if not exists Item_NF(id serial primary key, origem INTEGER references Nota_Fiscal(id), produto INTEGER references Produto(id), quantidade REAL, valor REAL, dataEntrada Date)'
     cursor.execute(table)
     concect.commit()
     cursor.close()
@@ -134,7 +124,6 @@ def create_data_base():
     create_table_Movimento_Estoque()
     create_table_Banco()
     create_table_Movimento_Bancario()
-    create_table_Titulo_Bancario()
     create_table_Nota_Fiscal()
     create_table_Item_NF()
     create_table_Venda()
@@ -165,7 +154,7 @@ def novo_Banco(codigobancario,  nomebanco, agencia,  conta,  endereco, bairro, m
     concect.commit()
     cursor.close()
 
-def novo_Cliente(nome,  cpf, logradouro, bairro, municipio, estado, cep, telefone,  email,  saldo=" "):
+def novo_Cliente(nome,  cpf, logradouro, bairro, municipio, estado, cep, telefone,  email,  saldo):
     cursor = concect.cursor()
     novoRegistro = "insert into Cliente(nome, cpf,  logradouro, bairro, municipio, estado, cep, telefone, email, saldo) values ('"+nome+"', "+cpf+", '"+logradouro+", '"+bairro+", '"+municipio+", '"+estado+", '"+cep+", '"+telefone+", '"+email+", '"+str(saldo)+"') "
     cursor.execute(novoRegistro)
@@ -186,8 +175,120 @@ def novo_estoque(descricao):
     concect.commit()
     cursor.close()
 
-def novo_saldo_inicial_estoque(estoque, produto):
-    pass
+#regras de negocio
+def novo_saldo_inicial_estoque(id_estoque, id_produto,  saldo_inicial=0):
+    if get_saldo_estoque_by_estoque_e_produto(id_produto, id_estoque) is None:
+        cursor = concect.cursor()
+        novoRegistro = "insert into saldo_estoque(produto, estoque,  saldo) values ('" + id_produto + "', '"+id_estoque+"', "+str(saldo_inicial)+") "
+        cursor.execute(novoRegistro)
+        concect.commit()
+        cursor.close()
+
+def alterar_saldo_estoque(id_estoque, id_produto, tipo, quantidade):
+    novo_saldo_inicial_estoque(id_estoque, id_produto)
+    saldo_estoque = get_saldo_estoque_by_estoque_e_produto(id_produto, id_estoque)
+    if saldo_estoque is not None:
+        novo_saldo=0
+        if tipo=='E':
+            novo_saldo = saldo_estoque.saldo+quantidade
+        if tipo=='S':
+            if saldo_estoque.saldo >= quantidade:
+                novo_saldo=saldo_estoque.saldo-quantidade
+            else:
+                return False
+        else:
+            return False
+
+        cursor = concect.cursor()
+        cursor.execute("UPDATE saldo_estoque SET saldo = "+novo_saldo+" WHERE id = "+id_estoque+"")
+        concect.commit()
+        cursor.close()
+        return True
+    return False
+
+def nova_movimentacao_estoque(id_estoque, id_produto, tipo, quantidade,  origem=" "):
+    if alterar_saldo_estoque(id_estoque, id_produto,  tipo, quantidade) is True:
+        cursor = concect.cursor()
+        cursor.execute("insert into movimento_estoque(origem,  tipo,  produto, estoque,  quantidade, dataMovimento) values ('" + origem + "', '"+str(tipo)+"', "+id_produto+", "+id_estoque+", "+quantidade+", CURRENT_DATE)")
+        concect.commit()
+        cursor.close()
+        return True
+    return False
+
+def alterar_saldo_bancario(id_banco, tipo, valor):
+    banco = get_banco_by_id(id_banco)
+    if banco is not None:
+        novo_saldo=0
+        if tipo=='E':
+            novo_saldo = banco.saldo+valor
+        if tipo=='S':
+            if banco.saldo >= valor:
+                novo_saldo=banco.saldo-valor
+            else:
+                return False
+        else:
+            return False
+
+        cursor = concect.cursor()
+        cursor.execute("UPDATE banco SET saldo = "+novo_saldo+" WHERE id = "+id_banco+"")
+        concect.commit()
+        cursor.close()
+        return True
+    return False
+
+def nova_movimentacao_bancaria(id_banco, tipo, valor, origem=" "):
+    if alterar_saldo_bancario(id_banco, tipo, valor) is True:
+        cursor = concect.cursor()
+        cursor.execute("insert into movimento_bancaria(origem,  tipo,  banco, valor, dataMovimento) values ('" + origem + "', '"+tipo+"', "+id_banco+", "+valor+", CURRENT_DATE) ")
+        concect.commit()
+        cursor.close()
+        return True
+    return False
+
+#Movimentações complexas, cabeçalhos devem ser inseridos antes dos itens,  todos os itens devem ser inseridos referenciando um cabeçalho
+def novo_cabecalho_NF(numero,  id_fornecedor, valor):
+    if get_fornecedor_by_id(id_fornecedor):
+        cursor = concect.cursor()
+        cursor.execute("insert into nota_fiscal(numero, fornecedor, valor ,dataEntrada) values ('" + numero + "', '"+id_fornecedor+"', "+valor+", CURRENT_DATE) ")
+        concect.commit()
+        cursor.close()
+        return True
+    return False
+
+def novo_item_nf(tipo, id_cabecalho,id_produto, quantidade,  valor):
+    if get_produto_by_id(id_produto):
+        if get_NF_by_id(id_cabecalho):
+            cursor = concect.cursor()
+            cursor.execute("insert into item_nf(tipo, origem, produto, quantidade, valor ,dataEntrada) values ('" + tipo + "', '"+id_cabecalho+"', "+id_produto+", "+quantidade+", "+valor+",CURRENT_DATE) ")
+            concect.commit()
+            cursor.close()
+            return True
+    return False
+
+def nova_venda(id_cliente, total ):
+    if get_cliente_by_id(id_cliente):
+        cursor = concect.cursor()
+        cursor.execute("insert into venda(cliente, total ,data) values ('" + id_cliente + "', '"+total+"', CURRENT_DATE) ")
+        concect.commit()
+        cursor.close()
+    else:
+        cursor = concect.cursor()
+        cursor.execute("insert into venda(total ,data) values ('"+total+"', CURRENT_DATE) ")
+        concect.commit()
+        cursor.close()
+    return True
+
+def novo_item_venda(id_venda,id_produto, quantidade,  preco):
+    if get_produto_by_id(id_produto):
+        if get_Venda_by_id(id_venda):
+            cursor = concect.cursor()
+            cursor.execute("insert into item_venda(produto, quantidade, preco ,venda) values ('" + id_produto + "', '"+quantidade+"', "+preco+", "+id_venda+") ")
+            concect.commit()
+            cursor.close()
+            return True
+    return False
+
+
 #Funções de recuperação de dados
 
 def get_all_Users():
@@ -215,6 +316,7 @@ def get_user(userStr):
         return None
 
 def get_all_Produtos():
+    #poderiamos usar o  get_produto_by_id? Sim, resolvemos fazer assim para mostrar mais o uso de funções do banco de dados
     cursor = concect.cursor()
     novoProduto = "SELECT * from Produto"
     cursor.execute(novoProduto)
@@ -313,8 +415,7 @@ def get_estoque_by_id(id):
 
     return None
 
-# PORQUE NÃO PDOE FAZER ISSO
-def get_saldo_estoque_by_estoque_e_produto(produto, estoque, user="", user2):
+def get_saldo_estoque_by_estoque_e_produto(produto, estoque):
     cursor = concect.cursor()
     novoSaldo = "SELECT * from Saldo_Estoque where produto=" + str(produto) + " and estoque="+ str(estoque)
     cursor.execute(novoSaldo)
@@ -348,7 +449,7 @@ def get_all_Bancos():
 
         while data_manager is not None:
             lista_bancos.append(
-                Banco(data_manager[0], data_manager[1], data_manager[2], data_manager[3], data_manager[4], data_manager[5], data_manager[6], data_manager[7], data_manager[8], data_manager[9], data_manager[10], data_manager[11]))
+                Banco(data_manager[0], data_manager[1], data_manager[2], data_manager[3], data_manager[4], data_manager[5], data_manager[6], data_manager[7], data_manager[8], data_manager[9], data_manager[10], data_manager[11], data_manager[12]))
             data_manager = cursor.fetchone()
 
         return lista_bancos
@@ -360,7 +461,7 @@ def get_banco_by_id(id):
         data_manager = cursor.fetchone()
 
         if data_manager is not None:
-            return Banco(data_manager[0], data_manager[1], data_manager[2], data_manager[3], data_manager[4], data_manager[5], data_manager[6], data_manager[7], data_manager[8], data_manager[9], data_manager[10], data_manager[11])
+            return Banco(data_manager[0], data_manager[1], data_manager[2], data_manager[3], data_manager[4], data_manager[5], data_manager[6], data_manager[7], data_manager[8], data_manager[9], data_manager[10], data_manager[11], data_manager[12])
 
         return None
 
@@ -376,7 +477,8 @@ def get_movimentos_bancario_by_banco(banco):
             Movimento_Bancario(data_manager[0], data_manager[1], data_manager[2], data_manager[3], data_manager[4], data_manager[5]))
         data_manager = cursor.fetchone()
 
-    return lista_saldo
+    return lista_movimentos
+    #antes era lista saldo
 
 def get_movimento_bancario_by_id(id):
     cursor = concect.cursor()
@@ -388,36 +490,6 @@ def get_movimento_bancario_by_id(id):
         return Movimento_Bancario(data_manager[0], data_manager[1], data_manager[2], data_manager[3], data_manager[4], data_manager[5])
 
     return None
-
-def get_titulos_bancario_by_status(status):
-        cursor = concect.cursor()
-        if status=='todos':
-            novoTitulo = "SELECT * from Titulo_Bancario"
-        else:
-            novoTitulo = "SELECT * from Titulo_Bancario where status=" + str(status)
-        cursor.execute(novoTitulo)
-        lista_titulos = []
-        data_manager = cursor.fetchone()
-
-        while data_manager is not None:
-            lista_titulos.append(
-                Titulo_Bancario(data_manager[0], data_manager[1], data_manager[2], data_manager[3], data_manager[4],
-                                   data_manager[5], data_manager[6], data_manager[7]))
-            data_manager = cursor.fetchone()
-
-        return lista_titulos
-
-def get_titulo_bancario_by_id(id):
-        cursor = concect.cursor()
-        novoTitulo = "SELECT * from Titulo_Bancario where id=" + str(id)
-        cursor.execute(novoTitulo)
-        data_manager = cursor.fetchone()
-
-        if data_manager is not None:
-            return Titulo_Bancario(data_manager[0], data_manager[1], data_manager[2], data_manager[3], data_manager[4],
-                                   data_manager[5], data_manager[6], data_manager[7])
-
-        return None
 
 def get_all_NFS():
     cursor = concect.cursor()
@@ -455,8 +527,7 @@ def get_itens_nf(id_nf):
 
     while data_manager is not None:
         lista_itens.append(
-            Item_NF(data_manager[0], data_manager[1], data_manager[2], data_manager[3], data_manager[4], data_manager[5],
-                  data_manager[6], data_manager[7]))
+            Item_NF(data_manager[0], data_manager[1], data_manager[2], data_manager[3], data_manager[4], data_manager[5]))
         data_manager = cursor.fetchone()
 
     return lista_itens
